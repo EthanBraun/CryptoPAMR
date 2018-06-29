@@ -149,7 +149,7 @@ class Portfolio():
 		#	print('b: ' + str(b))			
 
 			# Project portfolio into simplex domain
-			result = minimize(lambda q: norm(np.subtract(q, b)) ** 2, b, method='COBYLA', constraints=[{'type': 'eq', 'fun': lambda q: sum(q) - 1.0}, {'type': 'ineq', 'fun': lambda q: min(q)}])
+			result = minimize(lambda q: norm(np.subtract(q, b)) ** 2, [1. / len(b) for z in b], method='SLSQP', bounds=[(0.0, 1.0) for z in b], constraints={'type': 'eq', 'fun': lambda q: sum(q) - 1.0})
 			
 			if not self.noop:
 			#	print('Result: ' + str(result['x']))
