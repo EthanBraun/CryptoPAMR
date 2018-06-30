@@ -18,6 +18,7 @@ class Portfolio():
 		#self.tradeFee = 0.0000
 		self.tradePer = 1.0 - self.tradeFee
 		self.value = 1.0
+		self.values = [1.0]
 		self.noop = noop
 	
 	def printParams(self):
@@ -90,6 +91,7 @@ class Portfolio():
 	
 			prevValue = self.getValue()
 			self.setValue(sum(values))
+			self.values.append(self.getValue())
 
 			b = np.divide(values, self.getValue())
 			prevWeights = self.getWeights()
@@ -111,6 +113,7 @@ class Portfolio():
 			
 			if not self.noop:
 				self.updatePortfolio(result['x'], prevWeights, prevValue, prevRates, curRates) 
+		print('\n\tFinal Weights: ' + str(np.array(self.getWeights())) + '\n') 
 		return self.getValue()
 
 	def getEpsilon(self):
@@ -124,6 +127,9 @@ class Portfolio():
 
 	def getWeights(self):
 		return self.weights[:]
+
+	def getValues(self):
+		return self.values
 
 	def setValue(self, value):
 		self.value = value
@@ -187,10 +193,14 @@ now = int(time() * 1000)
 start = now - 500 * 60000
 binance = ccxt.binance()
 binance.load_markets()
-symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC', 'NEO/BTC']
-depth = 110000
+symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC']
+#symbols = ['TRX/BTC', 'ETC/BTC', 'BCH/BTC', 'IOTA/BTC', 'ZRX/BTC', 'WAN/BTC', 'WAVES/BTC', 'SNT/BTC', 'MCO/BTC', 'DASH/BTC', 'ELF/BTC', 'AION/BTC', 'STRAT/BTC', 'XVG/BTC', 'EDO/BTC', 'IOST/BTC', 'WABI/BTC', 'SUB/BTC', 'OMG/BTC', 'WTC/BTC', 'LSK/BTC', 'ZEC/BTC', 'STEEM/BTC', 'QSP/BTC', 'SALT/BTC', 'ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC']
+#symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC']
+#depth = 110000
+depth = 140000
 
 print('\nPortfolio symbols: ' + str(symbols))
+print('Managing ' + str(len(symbols)) + ' cryptocurrencies in each portfolio')
 
 data = []
 for sym in symbols:
@@ -212,14 +222,14 @@ print('\n\n' + str(np.array(fData).shape))
 b = [1 / float(len(symbols))] * len(symbols)
 
 # Initialize simulated portfolio
-port0 = Portfolio(symbols, 0.65, 5, b)
-port1 = Portfolio(symbols, 0.75, 5, b)
-port2 = Portfolio(symbols, 0.85, 5, b)
-port3 = Portfolio(symbols, 0.95, 5, b)
-port4 = Portfolio(symbols, 0.45, 6, b)
-port5 = Portfolio(symbols, 0.55, 6, b)
-port6 = Portfolio(symbols, 0.65, 6, b)
-port7 = Portfolio(symbols, 0.75, 6, b)
+port0 = Portfolio(symbols, 0.25, 7, b)
+port1 = Portfolio(symbols, 0.30, 7, b)
+port2 = Portfolio(symbols, 0.35, 7, b)
+port3 = Portfolio(symbols, 0.45, 7, b)
+port4 = Portfolio(symbols, 0.55, 7, b)
+port5 = Portfolio(symbols, 0.35, 8, b)
+port6 = Portfolio(symbols, 0.35, 9, b)
+port7 = Portfolio(symbols, 0.35, 10, b)
 
 ports = [port0, port1, port2, port3, port4, port5, port6, port7]
 bh = Portfolio(symbols, 0.95, 3, b, noop=True)
@@ -234,3 +244,15 @@ for port in ports:
 	val = port.simulate(fData)
 	print('\tPortfolio value: ' + str(val) + '\n')
 
+plt.title('Portfolio value vs minutes')
+plt.plot(bh.getValues(), label='Buy & Hold', color='#000000')
+plt.plot(port0.getValues(), label='Portfolio 0', color='#FF0000')
+plt.plot(port1.getValues(), label='Portfolio 1', color='#FF9000')
+plt.plot(port2.getValues(), label='Portfolio 2', color='#FFFF00')
+plt.plot(port3.getValues(), label='Portfolio 3', color='#00FF00')
+plt.plot(port4.getValues(), label='Portfolio 4', color='#00D8FF')
+plt.plot(port5.getValues(), label='Portfolio 5', color='#0000FF')
+plt.plot(port6.getValues(), label='Portfolio 6', color='#9800FF')
+plt.plot(port7.getValues(), label='Portfolio 7', color='#FA00FF')
+plt.legend()
+plt.show()
