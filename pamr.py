@@ -202,9 +202,11 @@ symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XE
 #depth = 110000
 depth = 140000
 clip = 15000
+holdBtc = True
 
 print('\nPortfolio symbols: ' + str(symbols))
-print('Managing ' + str(len(symbols)) + ' cryptocurrencies in each portfolio')
+print('Managing ' + str(len(symbols)) + ' alts in each portfolio')
+print('Holding BTC: ' + str(holdBtc))
 
 data = []
 for sym in symbols:
@@ -221,6 +223,11 @@ tData = truncateData(data)
 checkTruncData(tData)
 fData = formatData(tData)
 
+# Modify symbols and data if portfolios can hold BTC
+if holdBtc:
+	symbols.insert(0, 'BTC/BTC')
+	for i in range(len(fData)):
+		fData[i].insert(0, 1.0)
 
 print('\n\n' + str(np.array(fData).shape))
 b = [1 / float(len(symbols))] * len(symbols)
