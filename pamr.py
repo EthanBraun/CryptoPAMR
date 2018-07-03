@@ -201,6 +201,7 @@ symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XE
 #symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC']
 #depth = 110000
 depth = 140000
+clip = 15000
 
 print('\nPortfolio symbols: ' + str(symbols))
 print('Managing ' + str(len(symbols)) + ' cryptocurrencies in each portfolio')
@@ -208,7 +209,7 @@ print('Managing ' + str(len(symbols)) + ' cryptocurrencies in each portfolio')
 data = []
 for sym in symbols:
 	symData = getData(binance, start, depth, sym)
-	symData = symData[:-10000]
+	symData = symData[:-clip]
 	valid = validateTimesteps(symData)
 	if valid:
 		print('Data valid for ' + sym)
@@ -226,12 +227,12 @@ b = [1 / float(len(symbols))] * len(symbols)
 
 # Initialize simulated portfolio
 port0 = Portfolio(symbols, 0.25, 7, 1, b)
-port1 = Portfolio(symbols, 0.25, 7, 5, b)
-port2 = Portfolio(symbols, 0.35, 7, 1, b)
-port3 = Portfolio(symbols, 0.35, 7, 5, b)
-port4 = Portfolio(symbols, 0.45, 7, 1, b)
-port5 = Portfolio(symbols, 0.45, 7, 5, b)
-port6 = Portfolio(symbols, 0.55, 7, 1, b)
+port1 = Portfolio(symbols, 0.35, 7, 1, b)
+port2 = Portfolio(symbols, 0.45, 7, 1, b)
+port3 = Portfolio(symbols, 0.55, 7, 1, b)
+port4 = Portfolio(symbols, 0.25, 7, 5, b)
+port5 = Portfolio(symbols, 0.35, 7, 5, b)
+port6 = Portfolio(symbols, 0.45, 7, 5, b)
 port7 = Portfolio(symbols, 0.55, 7, 5, b)
 
 ports = [port0, port1, port2, port3, port4, port5, port6, port7]
