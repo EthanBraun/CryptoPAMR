@@ -8,10 +8,11 @@ from math import isnan
 
 # Simulated crypto portfolio
 class Portfolio():
-	def __init__(self, symbols, epsilon, slack, weights, noop=False):
+	def __init__(self, symbols, epsilon, slack, interval, weights, noop=False):
 		self.symbols = symbols
 		self.epsilon = epsilon
 		self.slack = slack
+		self.interval = interval
 		self.setWeights(weights)
 		self.reset()
 		self.tradeFee = 0.0005
@@ -25,6 +26,7 @@ class Portfolio():
 		print('\nPortfolio parameters:')
 		print('\tepsilon: ' + str(self.epsilon))
 		print('\tslack: ' + str(self.slack))
+		print('\tinterval: ' + str(self.interval))
 
 	# Re-initialize portfolio state
 	def reset(self):
@@ -96,22 +98,23 @@ class Portfolio():
 			b = np.divide(values, self.getValue())
 			prevWeights = self.getWeights()
 			
-			if not self.noop:
-				self.setWeights(b)
+			self.setWeights(b)
+		
+			# Redistribute portfolio on an interval
+			if (not self.noop) and (i % self.interval == 0):
+				# Calculate loss
+				loss = max(0, np.dot(b, x) - self.getEpsilon())
 
-			# Calculate loss
-			loss = max(0, np.dot(b, x) - self.getEpsilon())
+				# Calculate Tau (update step size)
+				tau = loss / ((norm(np.subtract(x, np.mean(x))) ** 2) + (1 / (2. * self.getSlack()))) 
 
-			# Calculate Tau (update step size)
-			tau = loss / ((norm(np.subtract(x, np.mean(x))) ** 2) + (1 / (2. * self.getSlack()))) 
-
-			# Calculate new portfolio weights
-			b = np.subtract(self.getWeights(), np.multiply(tau, np.subtract(x, np.mean(x))))
+				# Calculate new portfolio weights
+				b = np.subtract(self.getWeights(), np.multiply(tau, np.subtract(x, np.mean(x))))
 			
-			# Project portfolio into simplex domain
-			result = minimize(lambda q: norm(np.subtract(q, b)) ** 2, [1. / len(b) for z in b], method='SLSQP', bounds=[(0.0, 1.0) for z in b], constraints={'type': 'eq', 'fun': lambda q: sum(q) - 1.0})
+				# Project portfolio into simplex domain
+				result = minimize(lambda q: norm(np.subtract(q, b)) ** 2, [1. / len(b) for z in b], method='SLSQP', bounds=[(0.0, 1.0) for z in b], constraints={'type': 'eq', 'fun': lambda q: sum(q) - 1.0})
 			
-			if not self.noop:
+				# Update portfolio with projected new weights
 				self.updatePortfolio(result['x'], prevWeights, prevValue, prevRates, curRates) 
 		print('\n\tFinal Weights: ' + str(np.array(self.getWeights())) + '\n') 
 		return self.getValue()
@@ -222,17 +225,17 @@ print('\n\n' + str(np.array(fData).shape))
 b = [1 / float(len(symbols))] * len(symbols)
 
 # Initialize simulated portfolio
-port0 = Portfolio(symbols, 0.25, 7, b)
-port1 = Portfolio(symbols, 0.30, 7, b)
-port2 = Portfolio(symbols, 0.35, 7, b)
-port3 = Portfolio(symbols, 0.45, 7, b)
-port4 = Portfolio(symbols, 0.55, 7, b)
-port5 = Portfolio(symbols, 0.35, 8, b)
-port6 = Portfolio(symbols, 0.35, 9, b)
-port7 = Portfolio(symbols, 0.35, 10, b)
+port0 = Portfolio(symbols, 0.25, 7, 1, b)
+port1 = Portfolio(symbols, 0.25, 7, 5, b)
+port2 = Portfolio(symbols, 0.35, 7, 1, b)
+port3 = Portfolio(symbols, 0.35, 7, 5, b)
+port4 = Portfolio(symbols, 0.45, 7, 1, b)
+port5 = Portfolio(symbols, 0.45, 7, 5, b)
+port6 = Portfolio(symbols, 0.55, 7, 1, b)
+port7 = Portfolio(symbols, 0.55, 7, 5, b)
 
 ports = [port0, port1, port2, port3, port4, port5, port6, port7]
-bh = Portfolio(symbols, 0.95, 3, b, noop=True)
+bh = Portfolio(symbols, 0.95, 3, 1, b, noop=True)
 
 print('\nBuy & Hold:')
 val = bh.simulate(fData)
