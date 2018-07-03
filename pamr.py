@@ -127,6 +127,9 @@ class Portfolio():
 		print('\n\tFinal Weights: ' + str(np.array(self.getWeights())) + '\n') 
 		return self.getValue()
 
+	def getLabel(self, name):
+		return (name + ' - (epsilon: ' + str(self.epsilon) + ', slack: ' + str(self.slack) + ', interval: ' + str(self.interval) + ')')  
+
 	def getEpsilon(self):
 		return self.epsilon
 
@@ -263,15 +266,14 @@ for port in ports:
 	val = port.simulate(fData)
 	print('\tPortfolio value: ' + str(val) + '\n')
 
+
+names = ['Portfolio ' + str(i) for i in range(len(ports))]
+labels = [ports[i].getLabel(names[i]) for i in range(len(ports))]
+colors = ['#FF0000', '#FF9000', '#FFFF00', '#00FF00', '#00D8FF', '#0000FF', '#9800FF', '#FA00FF']
+
 plt.title('Portfolio value vs minutes')
 plt.plot(bh.getValues(), label='Buy & Hold', color='#000000')
-plt.plot(port0.getValues(), label='Portfolio 0', color='#FF0000')
-plt.plot(port1.getValues(), label='Portfolio 1', color='#FF9000')
-plt.plot(port2.getValues(), label='Portfolio 2', color='#FFFF00')
-plt.plot(port3.getValues(), label='Portfolio 3', color='#00FF00')
-plt.plot(port4.getValues(), label='Portfolio 4', color='#00D8FF')
-plt.plot(port5.getValues(), label='Portfolio 5', color='#0000FF')
-plt.plot(port6.getValues(), label='Portfolio 6', color='#9800FF')
-plt.plot(port7.getValues(), label='Portfolio 7', color='#FA00FF')
+for i in range(len(ports)):
+	plt.plot(ports[i].getValues(), label=labels[i], color=colors[i])
 plt.legend()
 plt.show()
