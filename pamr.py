@@ -76,11 +76,13 @@ class Portfolio():
 
 	# Simulate the pamr agent over a set of data and return the final portfolio value
 	def simulate(self, fData):	
+		x = [1. for i in symbols]
+
 		for i in range(len(fData) - 1):
-			# Get market relative price vector
+			# Get market-relative price vector at current timestep
 			prevRates = []
 			curRates = []
-			x = []
+			xHat = []
 			values = []
 
 			for j in range(len(symbols)):
@@ -88,9 +90,12 @@ class Portfolio():
 				prevClose = fData[i][j]
 				curRates.append(lastClose)
 				prevRates.append(prevClose)
-				x.append(lastClose / prevClose)
-				values.append(self.getWeights()[j] * self.getValue() * x[j])
+				xHat.append(lastClose / prevClose)
+				values.append(self.getWeights()[j] * self.getValue() * xHat[j])
 	
+			# Update overall market-relative price vector over interval
+			x = np.multiply(x, xHat)
+
 			prevValue = self.getValue()
 			self.setValue(sum(values))
 			self.values.append(self.getValue())
@@ -116,6 +121,9 @@ class Portfolio():
 			
 				# Update portfolio with projected new weights
 				self.updatePortfolio(result['x'], prevWeights, prevValue, prevRates, curRates) 
+
+				# Reset overall market-relative price vector
+				x = [1. for i in symbols]
 		print('\n\tFinal Weights: ' + str(np.array(self.getWeights())) + '\n') 
 		return self.getValue()
 
@@ -235,12 +243,12 @@ b = [1 / float(len(symbols))] * len(symbols)
 # Initialize simulated portfolio
 port0 = Portfolio(symbols, 0.25, 7, 1, b)
 port1 = Portfolio(symbols, 0.35, 7, 1, b)
-port2 = Portfolio(symbols, 0.45, 7, 1, b)
-port3 = Portfolio(symbols, 0.55, 7, 1, b)
-port4 = Portfolio(symbols, 0.25, 7, 5, b)
-port5 = Portfolio(symbols, 0.35, 7, 5, b)
-port6 = Portfolio(symbols, 0.45, 7, 5, b)
-port7 = Portfolio(symbols, 0.55, 7, 5, b)
+port2 = Portfolio(symbols, 0.25, 7, 5, b)
+port3 = Portfolio(symbols, 0.35, 7, 5, b)
+port4 = Portfolio(symbols, 0.25, 7, 30, b)
+port5 = Portfolio(symbols, 0.35, 7, 30, b)
+port6 = Portfolio(symbols, 0.25, 7, 60, b)
+port7 = Portfolio(symbols, 0.35, 7, 60, b)
 
 ports = [port0, port1, port2, port3, port4, port5, port6, port7]
 bh = Portfolio(symbols, 0.95, 3, 1, b, noop=True)
