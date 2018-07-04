@@ -271,7 +271,9 @@ names = ['Portfolio ' + str(i) for i in range(len(ports))]
 labels = [ports[i].getLabel(names[i]) for i in range(len(ports))]
 colors = ['#FF0000', '#FF9000', '#FFFF00', '#00FF00', '#00D8FF', '#0000FF', '#9800FF', '#FA00FF']
 
-plt.title('Portfolio value vs minutes')
+plt.title('Portfolio value v. Time')
+plt.xlabel('Minutes')
+plt.ylabel('BTC')
 plt.plot(bh.getValues(), label='Buy & Hold', color='#000000')
 for i in range(len(ports)):
 	plt.plot(ports[i].getValues(), label=labels[i], color=colors[i])
