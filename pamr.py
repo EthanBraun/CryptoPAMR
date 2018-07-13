@@ -5,10 +5,11 @@ from matplotlib import pyplot as plt
 from numpy.linalg import norm
 from scipy.optimize import *
 from math import isnan
+from random import random as rand 
 
 # Simulated crypto portfolio
 class Portfolio():
-	def __init__(self, symbols, epsilon, slack, interval, weights, noop=False):
+	def __init__(self, symbols, epsilon, slack, interval, weights, noop=False, failureChance=0):
 		self.symbols = symbols
 		self.epsilon = epsilon
 		self.slack = slack
@@ -21,12 +22,14 @@ class Portfolio():
 		self.value = 1.0
 		self.values = [1.0]
 		self.noop = noop
+		self.failureChance = failureChance
 	
 	def printParams(self):
 		print('\nPortfolio parameters:')
 		print('\tepsilon: ' + str(self.epsilon))
 		print('\tslack: ' + str(self.slack))
 		print('\tinterval: ' + str(self.interval))
+		print('\tfailure chance: ' + str(self.failureChance))
 
 	# Re-initialize portfolio state
 	def reset(self):
@@ -58,7 +61,7 @@ class Portfolio():
 
 		# Calculate actual positive value changes with trade fees
 		realPosValDeltas = [per * self.tradePer * buy for per in posValDeltaPer]
-		
+
 		# Calculate overall value deltas
 		realValDeltas = []
 		for val in valueDelta:
@@ -66,6 +69,13 @@ class Portfolio():
 				realValDeltas.append(val)
 			else:
 				realValDeltas.append(realPosValDeltas.pop(0))
+
+		# Simulate possiblility of trade failure
+		for i in range(1, len(realValDeltas)):
+			if rand() < self.failureChance:
+				realValDeltas[0] += realValDeltas[i] / self.tradePer	
+				realValDeltas[i] = 0
+		
 
 		# Calculate new value
 		newValues = np.add(currentValues, realValDeltas)
@@ -128,7 +138,7 @@ class Portfolio():
 		return self.getValue()
 
 	def getLabel(self, name):
-		return (name + ' - (epsilon: ' + str(self.epsilon) + ', slack: ' + str(self.slack) + ', interval: ' + str(self.interval) + ')')  
+		return (name + ' - (epsilon: ' + str(self.epsilon) + ', slack: ' + str(self.slack) + ', interval: ' + str(self.interval) + ', failure chance: ' + str(self.failureChance) + ')')  
 
 	def getEpsilon(self):
 		return self.epsilon
@@ -207,12 +217,14 @@ now = int(time() * 1000)
 start = now - 500 * 60000
 binance = ccxt.binance()
 binance.load_markets()
-symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC']
+#symbols = ['DENT/BTC', 'ETH/BTC', 'ETC/BTC', 'EOS/BTC', 'MFT/BTC', 'KEY/BTC', 'NPXS/BTC', 'NEO/BTC', 'ICX/BTC', 'QKC/BTC', 'XRP/BTC', 'LOOM/BTC', 'ONT/BTC', 'ADA/BTC']
+symbols = ['EOS/BTC', 'ETH/BTC', 'ETC/BTC', 'TRX/BTC', 'ICX/BTC', 'XRP/BTC', 'XLM/BTC', 'NEO/BTC', 'LTC/BTC', 'ADA/BTC']
+#symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC']
 #symbols = ['TRX/BTC', 'ETC/BTC', 'BCH/BTC', 'IOTA/BTC', 'ZRX/BTC', 'WAN/BTC', 'WAVES/BTC', 'SNT/BTC', 'MCO/BTC', 'DASH/BTC', 'ELF/BTC', 'AION/BTC', 'STRAT/BTC', 'XVG/BTC', 'EDO/BTC', 'IOST/BTC', 'WABI/BTC', 'SUB/BTC', 'OMG/BTC', 'WTC/BTC', 'LSK/BTC', 'ZEC/BTC', 'STEEM/BTC', 'QSP/BTC', 'SALT/BTC', 'ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC', 'VEN/BTC', 'NAV/BTC', 'BQX/BTC']
 #symbols = ['ETH/BTC', 'XRP/BTC', 'XLM/BTC', 'ADA/BTC', 'NEO/BTC', 'XMR/BTC', 'XEM/BTC', 'EOS/BTC', 'ICX/BTC', 'LTC/BTC', 'QTUM/BTC']
 #depth = 110000
-depth = 140000
-clip = 15000
+depth = 210000
+clip = 35000
 holdBtc = True
 
 print('\nPortfolio symbols: ' + str(symbols))
@@ -244,14 +256,14 @@ print('\n\n' + str(np.array(fData).shape))
 b = [1 / float(len(symbols))] * len(symbols)
 
 # Initialize simulated portfolio
-port0 = Portfolio(symbols, 0.25, 7, 1, b)
-port1 = Portfolio(symbols, 0.35, 7, 1, b)
-port2 = Portfolio(symbols, 0.25, 7, 5, b)
-port3 = Portfolio(symbols, 0.35, 7, 5, b)
-port4 = Portfolio(symbols, 0.25, 7, 30, b)
-port5 = Portfolio(symbols, 0.35, 7, 30, b)
-port6 = Portfolio(symbols, 0.25, 7, 60, b)
-port7 = Portfolio(symbols, 0.35, 7, 60, b)
+port0 = Portfolio(symbols, 0.25, 7, 15, b)
+port1 = Portfolio(symbols, 0.35, 7, 15, b)
+port2 = Portfolio(symbols, 0.35, 8, 30, b, failureChance=0.025)
+port3 = Portfolio(symbols, 0.40, 9, 30, b)
+port4 = Portfolio(symbols, 0.25, 9, 30, b)
+port5 = Portfolio(symbols, 0.35, 9, 30, b)
+port6 = Portfolio(symbols, 0.35, 9, 30, b, failureChance=0.05)
+port7 = Portfolio(symbols, 0.35, 9, 30, b, failureChance=0.10)
 
 ports = [port0, port1, port2, port3, port4, port5, port6, port7]
 bh = Portfolio(symbols, 0.95, 3, 1, b, noop=True)
